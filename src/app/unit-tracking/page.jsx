@@ -2,74 +2,67 @@
 import React from "react";
 
 function MainComponent() {
-  const { data: user, loading } = use-User();
-  const [units, setUnits] = useState([]);
-  const [selectedUnit, setSelectedUnit] = useState(null);
-  const [trackingHistory, setTrackingHistory] = useState([]);
+  const { data: user, loading } = useUser();
+  const [units, setUnits] = useState([
+    { id: "UNIT001", name: "Forklift A" },
+    { id: "UNIT002", name: "Crane B" },
+    { id: "UNIT003", name: "Loader C" },
+  ]);
+
+  const [usageHistory, setUsageHistory] = useState([
+    {
+      id: 1,
+      unit: "Forklift A",
+      user: "John Doe",
+      startTime: "2025-01-15 09:00",
+      endTime: "2025-01-15 17:00",
+      status: "completed",
+      notes: "Regular operation",
+    },
+    {
+      id: 2,
+      unit: "Crane B",
+      user: "Jane Smith",
+      startTime: "2025-01-16 08:00",
+      status: "active",
+      notes: "Construction project",
+    },
+  ]);
+
+  const [selectedUnit, setSelectedUnit] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [notes, setNotes] = useState("");
   const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
-    equipment_id: "",
-    start_time: "",
-    notes: "",
-  });
 
-  useEffect(() => {
-    const fetchUnits = async () => {
-      try {
-        const response = await fetch("/api/equipment/list", { method: "POST" });
-        if (!response.ok) {
-          throw new Error("Failed to fetch units");
-        }
-        const data = await response.json();
-        setUnits(data.equipment || []);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load units");
-      }
-    };
-
-    if (user) {
-      fetchUnits();
-    }
-  }, [user]);
-
-  const handleStartTracking = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      const response = await fetch("/api/equipment-tracking/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          user_id: user.id,
-        }),
-      });
+    const newUsage = {
+      id: usageHistory.length + 1,
+      unit: selectedUnit,
+      user: user.email,
+      startTime,
+      status: "active",
+      notes,
+    };
+    setUsageHistory([newUsage, ...usageHistory]);
+    setSelectedUnit("");
+    setStartTime("");
+    setNotes("");
+  };
 
-      if (!response.ok) {
-        throw new Error("Failed to start tracking");
+  const handleReportIssue = (id) => {
+    const updatedHistory = usageHistory.map((item) => {
+      if (item.id === id) {
+        return { ...item, status: "trouble" };
       }
+      return item;
+    });
+    setUsageHistory(updatedHistory);
+  };
 
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      setFormData({
-        equipment_id: "",
-        start_time: "",
-        notes: "",
-      });
-
-      // Refresh units list after tracking
-      const updatedUnitsResponse = await fetch("/api/equipment/list", {
-        method: "POST",
-      });
-      const updatedUnitsData = await updatedUnitsResponse.json();
-      setUnits(updatedUnitsData.equipment || []);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to start tracking unit");
-    }
+  const handleExport = (format) => {
+    console.error("Export functionality needs to be implemented");
+    setError("Export feature coming soon");
   };
 
   if (loading) {
@@ -101,118 +94,99 @@ function MainComponent() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-800">Unit Tracking</h1>
+          <div className="flex space-x-4">
+            <button
+              onClick={() => handleExport("pdf")}
+              className="flex items-center rounded-lg bg-gray-100 px-4 py-2 text-gray-600 hover:bg-gray-200"
+            >
+              <i className="fa-solid fa-file-pdf mr-2"></i>
+              Export PDF
+            </button>
+            <button
+              onClick={() => handleExport("excel")}
+              className="flex items-center rounded-lg bg-gray-100 px-4 py-2 text-gray-600 hover:bg-gray-200"
+            >
+              <i className="fa-solid fa-file-excel mr-2"></i>
+              Export Excel
+            </button>
+          </div>
         </div>
 
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-500">
-            {error}
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="rounded-xl bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-xl font-bold text-gray-800">
-              Available Units
-            </h2>
-            <div className="space-y-4">
-              {units.map((unit) => (
-                <div
-                  key={unit.id}
-                  className="flex items-center justify-between rounded-lg border border-gray-200 p-4"
-                >
-                  <div>
-                    <div className="font-medium text-gray-800">{unit.name}</div>
-                    <div className="text-sm text-gray-600">{unit.type}</div>
-                  </div>
-                  <span
-                    className={`rounded-full px-3 py-1 text-sm ${
-                      unit.status === "available"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {unit.status}
-                  </span>
-                </div>
-              ))}
+        <div className="mb-8 rounded-xl bg-white p-6 shadow-lg">
+          <h2 className="mb-4 text-xl font-bold text-gray-800">
+            Borrow Equipment
+          </h2>
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 gap-6 md:grid-cols-2"
+          >
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Unit
+              </label>
+              <select
+                name="unit"
+                value={selectedUnit}
+                onChange={(e) => setSelectedUnit(e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-gray-200 p-3 focus:border-[#357AFF] focus:ring-1 focus:ring-[#357AFF]"
+                required
+              >
+                <option value="">Select a unit</option>
+                {units.map((unit) => (
+                  <option key={unit.id} value={unit.name}>
+                    {unit.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
 
-          <div className="rounded-xl bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-xl font-bold text-gray-800">
-              Record Unit Usage
-            </h2>
-            <form onSubmit={handleStartTracking} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Select Unit
-                </label>
-                <select
-                  name="equipment_id"
-                  value={formData.equipment_id}
-                  onChange={(e) =>
-                    setFormData({ ...formData, equipment_id: e.target.value })
-                  }
-                  className="mt-1 block w-full rounded-lg border border-gray-200 p-3 focus:border-[#357AFF] focus:ring-1 focus:ring-[#357AFF]"
-                  required
-                >
-                  <option value="">Choose a unit</option>
-                  {units
-                    .filter((unit) => unit.status === "available")
-                    .map((unit) => (
-                      <option key={unit.id} value={unit.id}>
-                        {unit.name} - {unit.type}
-                      </option>
-                    ))}
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Start Time
+              </label>
+              <input
+                name="startTime"
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-gray-200 p-3 focus:border-[#357AFF] focus:ring-1 focus:ring-[#357AFF]"
+                required
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Start Time
-                </label>
-                <input
-                  type="datetime-local"
-                  name="start_time"
-                  value={formData.start_time}
-                  onChange={(e) =>
-                    setFormData({ ...formData, start_time: e.target.value })
-                  }
-                  className="mt-1 block w-full rounded-lg border border-gray-200 p-3 focus:border-[#357AFF] focus:ring-1 focus:ring-[#357AFF]"
-                  required
-                />
-              </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Notes
+              </label>
+              <textarea
+                name="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-gray-200 p-3 focus:border-[#357AFF] focus:ring-1 focus:ring-[#357AFF]"
+                rows="3"
+              ></textarea>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Notes
-                </label>
-                <textarea
-                  name="notes"
-                  value={formData.notes}
-                  onChange={(e) =>
-                    setFormData({ ...formData, notes: e.target.value })
-                  }
-                  className="mt-1 block w-full rounded-lg border border-gray-200 p-3 focus:border-[#357AFF] focus:ring-1 focus:ring-[#357AFF]"
-                  rows="3"
-                  placeholder="Enter usage details or notes"
-                ></textarea>
-              </div>
-
+            <div className="md:col-span-2">
               <button
                 type="submit"
                 className="w-full rounded-lg bg-[#357AFF] px-4 py-3 text-white hover:bg-[#2E69DE]"
               >
-                Start Tracking
+                Submit Request
               </button>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
 
-        <div className="mt-8 rounded-xl bg-white p-6 shadow-lg">
+        <div className="rounded-xl bg-white p-6 shadow-lg">
           <h2 className="mb-4 text-xl font-bold text-gray-800">
             Usage History
           </h2>
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-500">
+              {error}
+            </div>
+          )}
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -221,36 +195,55 @@ function MainComponent() {
                     Unit
                   </th>
                   <th className="pb-4 text-sm font-medium text-gray-500">
+                    User
+                  </th>
+                  <th className="pb-4 text-sm font-medium text-gray-500">
                     Start Time
                   </th>
                   <th className="pb-4 text-sm font-medium text-gray-500">
-                    User
+                    End Time
+                  </th>
+                  <th className="pb-4 text-sm font-medium text-gray-500">
+                    Status
                   </th>
                   <th className="pb-4 text-sm font-medium text-gray-500">
                     Notes
                   </th>
                   <th className="pb-4 text-sm font-medium text-gray-500">
-                    Status
+                    Actions
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {trackingHistory.map((record) => (
-                  <tr key={record.id} className="border-b last:border-0">
-                    <td className="py-4">{record.unit_name}</td>
-                    <td className="py-4">{record.start_time}</td>
-                    <td className="py-4">{record.user_name}</td>
-                    <td className="py-4">{record.notes}</td>
+                {usageHistory.map((usage) => (
+                  <tr key={usage.id} className="border-b last:border-0">
+                    <td className="py-4">{usage.unit}</td>
+                    <td className="py-4">{usage.user}</td>
+                    <td className="py-4">{usage.startTime}</td>
+                    <td className="py-4">{usage.endTime || "-"}</td>
                     <td className="py-4">
                       <span
                         className={`rounded-full px-3 py-1 text-sm ${
-                          record.status === "completed"
+                          usage.status === "active"
                             ? "bg-green-100 text-green-700"
-                            : "bg-blue-100 text-blue-700"
+                            : usage.status === "trouble"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-gray-100 text-gray-700"
                         }`}
                       >
-                        {record.status}
+                        {usage.status}
                       </span>
+                    </td>
+                    <td className="py-4">{usage.notes}</td>
+                    <td className="py-4">
+                      {usage.status === "active" && (
+                        <button
+                          onClick={() => handleReportIssue(usage.id)}
+                          className="rounded-lg bg-red-50 px-3 py-1 text-sm text-red-600 hover:bg-red-100"
+                        >
+                          Report Issue
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

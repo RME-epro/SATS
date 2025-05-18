@@ -2,7 +2,7 @@
 import React from "react";
 
 function MainComponent() {
-  const { data: user, loading } = use-User();
+  const { data: user, loading } = useUser();
   const [availableEquipment, setAvailableEquipment] = useState([]);
   const [borrowRequests, setBorrowRequests] = useState([]);
   const [error, setError] = useState(null);

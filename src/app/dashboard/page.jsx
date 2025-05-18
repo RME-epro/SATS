@@ -2,41 +2,27 @@
 import React from "react";
 
 function MainComponent() {
-  const { data: user, loading } = use-User();
+  const [selectedSection, setSelectedSection] = useState("overview");
+  const { data: user, loading } = useUser();
   const [error, setError] = useState(null);
-  const [equipmentStats, setEquipmentStats] = useState({
-    total: 0,
-    available: 0,
-    inUse: 0,
-    maintenance: 0,
-  });
-  const [recentTasks, setRecentTasks] = useState([]);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const response = await fetch("/api/dashboard/stats", {
-          method: "POST",
-        });
-        if (!response.ok) {
-          throw new Error("Failed to fetch dashboard data");
-        }
-        const data = await response.json();
-        if (data.error) {
-          throw new Error(data.error);
-        }
-        setEquipmentStats(data.equipmentStats);
-        setRecentTasks(data.recentTasks);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load dashboard data");
-      }
-    };
+  const metrics = [
+    { title: "Total Units", value: "157", icon: "fa-boxes" },
+    { title: "Tasks Complete", value: "24", icon: "fa-check-circle" },
+    { title: "Storage Used", value: "75%", icon: "fa-database" },
+    { title: "Active Projects", value: "12", icon: "fa-project-diagram" },
+  ];
 
-    if (user) {
-      fetchDashboardData();
-    }
-  }, [user]);
+  const recentActivity = [
+    {
+      action: "Unit ABC123 tracked",
+      time: "2 hours ago",
+      icon: "fa-location-dot",
+    },
+    { action: "Checklist updated", time: "3 hours ago", icon: "fa-list-check" },
+    { action: "Storage space added", time: "5 hours ago", icon: "fa-plus" },
+    { action: "New unit registered", time: "1 day ago", icon: "fa-box" },
+  ];
 
   if (loading) {
     return (
@@ -63,188 +49,107 @@ function MainComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-          <div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className="flex flex-col md:flex-row">
+        <nav className="bg-white p-6 md:h-screen md:w-64 md:shadow-lg">
+          <div className="mb-8 text-2xl font-bold text-gray-800">Dashboard</div>
+          <div className="flex flex-col space-y-2">
+            <button
+              onClick={() => setSelectedSection("overview")}
+              className={`flex items-center rounded-lg px-4 py-2 text-left ${
+                selectedSection === "overview"
+                  ? "bg-[#357AFF] text-white"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <i className="fa-solid fa-chart-line mr-3"></i>
+              Overview
+            </button>
+            <button
+              onClick={() => setSelectedSection("units")}
+              className={`flex items-center rounded-lg px-4 py-2 text-left ${
+                selectedSection === "units"
+                  ? "bg-[#357AFF] text-white"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <i className="fa-solid fa-box mr-3"></i>
+              Unit Tracking
+            </button>
+            <button
+              onClick={() => setSelectedSection("checklist")}
+              className={`flex items-center rounded-lg px-4 py-2 text-left ${
+                selectedSection === "checklist"
+                  ? "bg-[#357AFF] text-white"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <i className="fa-solid fa-list-check mr-3"></i>
+              Checklist
+            </button>
+            <button
+              onClick={() => setSelectedSection("storage")}
+              className={`flex items-center rounded-lg px-4 py-2 text-left ${
+                selectedSection === "storage"
+                  ? "bg-[#357AFF] text-white"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <i className="fa-solid fa-warehouse mr-3"></i>
+              Storage
+            </button>
+          </div>
+        </nav>
+
+        <main className="flex-1 p-6">
+          <div className="mb-6 flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-800">
-              Welcome, {user.name}
+              Welcome, {user.email}
             </h1>
-            <p className="text-gray-600">Role: {user.role}</p>
+            <a
+              href="/account/logout"
+              className="rounded-lg bg-gray-100 px-4 py-2 text-gray-600 hover:bg-gray-200"
+            >
+              Sign Out
+            </a>
           </div>
-          <div className="flex gap-4">
-            {user.role === "tekhnisi" && (
-              <a
-                href="/checklist"
-                className="flex items-center rounded-lg bg-[#357AFF] px-4 py-2 text-white hover:bg-[#2E69DE]"
-              >
-                <i className="fa-solid fa-clipboard-check mr-2"></i>
-                New Checklist
-              </a>
-            )}
-            {user.role === "superadmin" && (
-              <a
-                href="/admin/users"
-                className="flex items-center rounded-lg bg-[#357AFF] px-4 py-2 text-white hover:bg-[#2E69DE]"
-              >
-                <i className="fa-solid fa-users-gear mr-2"></i>
-                Manage Users
-              </a>
-            )}
-          </div>
-        </div>
 
-        {error && (
-          <div className="mb-6 rounded-lg bg-red-50 p-4 text-red-500">
-            {error}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {metrics.map((metric, index) => (
+              <div key={index} className="rounded-xl bg-white p-6 shadow-lg">
+                <div className="mb-4 text-[#357AFF]">
+                  <i className={`fa-solid ${metric.icon} text-2xl`}></i>
+                </div>
+                <div className="text-sm text-gray-600">{metric.title}</div>
+                <div className="text-2xl font-bold text-gray-800">
+                  {metric.value}
+                </div>
+              </div>
+            ))}
           </div>
-        )}
 
-        <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl bg-white p-6 shadow-lg">
-            <div className="mb-4 text-[#357AFF]">
-              <i className="fa-solid fa-boxes text-2xl"></i>
-            </div>
-            <div className="text-sm text-gray-600">Total Equipment</div>
-            <div className="text-2xl font-bold text-gray-800">
-              {equipmentStats.total}
-            </div>
-          </div>
-          <div className="rounded-xl bg-white p-6 shadow-lg">
-            <div className="mb-4 text-green-500">
-              <i className="fa-solid fa-check-circle text-2xl"></i>
-            </div>
-            <div className="text-sm text-gray-600">Available</div>
-            <div className="text-2xl font-bold text-gray-800">
-              {equipmentStats.available}
-            </div>
-          </div>
-          <div className="rounded-xl bg-white p-6 shadow-lg">
-            <div className="mb-4 text-blue-500">
-              <i className="fa-solid fa-rotate text-2xl"></i>
-            </div>
-            <div className="text-sm text-gray-600">In Use</div>
-            <div className="text-2xl font-bold text-gray-800">
-              {equipmentStats.inUse}
-            </div>
-          </div>
-          <div className="rounded-xl bg-white p-6 shadow-lg">
-            <div className="mb-4 text-yellow-500">
-              <i className="fa-solid fa-wrench text-2xl"></i>
-            </div>
-            <div className="text-sm text-gray-600">Under Maintenance</div>
-            <div className="text-2xl font-bold text-gray-800">
-              {equipmentStats.maintenance}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="rounded-xl bg-white p-6 shadow-lg">
+          <div className="mt-8 rounded-xl bg-white p-6 shadow-lg">
             <h2 className="mb-4 text-xl font-bold text-gray-800">
-              Recent Tasks
+              Recent Activity
             </h2>
             <div className="space-y-4">
-              {recentTasks.map((task, index) => (
+              {recentActivity.map((activity, index) => (
                 <div
                   key={index}
                   className="flex items-center border-b border-gray-100 pb-4 last:border-0"
                 >
                   <div className="mr-4 rounded-full bg-[#357AFF] bg-opacity-10 p-3 text-[#357AFF]">
-                    <i
-                      className={`fa-solid ${
-                        task.type === "checklist"
-                          ? "fa-clipboard-check"
-                          : "fa-wrench"
-                      }`}
-                    ></i>
+                    <i className={`fa-solid ${activity.icon}`}></i>
                   </div>
-                  <div className="flex-1">
-                    <div className="text-gray-800">{task.description}</div>
-                    <div className="text-sm text-gray-500">{task.date}</div>
-                  </div>
-                  <div
-                    className={`rounded-full px-3 py-1 text-sm ${
-                      task.status === "completed"
-                        ? "bg-green-100 text-green-700"
-                        : task.status === "pending"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {task.status}
+                  <div>
+                    <div className="text-gray-800">{activity.action}</div>
+                    <div className="text-sm text-gray-500">{activity.time}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-
-          <div className="rounded-xl bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-xl font-bold text-gray-800">
-              Quick Actions
-            </h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <a
-                href="/checklist"
-                className="flex items-center rounded-lg border border-gray-200 p-4 hover:border-[#357AFF]"
-              >
-                <i className="fa-solid fa-clipboard-check mr-3 text-[#357AFF]"></i>
-                <div>
-                  <div className="font-medium text-gray-800">
-                    Equipment Checklist
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Perform equipment checks
-                  </div>
-                </div>
-              </a>
-              <a
-                href="/equipment"
-                className="flex items-center rounded-lg border border-gray-200 p-4 hover:border-[#357AFF]"
-              >
-                <i className="fa-solid fa-boxes mr-3 text-[#357AFF]"></i>
-                <div>
-                  <div className="font-medium text-gray-800">
-                    Equipment Status
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    View equipment details
-                  </div>
-                </div>
-              </a>
-              {user.role === "kepala departemen" && (
-                <>
-                  <a
-                    href="/reports"
-                    className="flex items-center rounded-lg border border-gray-200 p-4 hover:border-[#357AFF]"
-                  >
-                    <i className="fa-solid fa-chart-line mr-3 text-[#357AFF]"></i>
-                    <div>
-                      <div className="font-medium text-gray-800">Reports</div>
-                      <div className="text-sm text-gray-600">
-                        View analytics
-                      </div>
-                    </div>
-                  </a>
-                  <a
-                    href="/maintenance"
-                    className="flex items-center rounded-lg border border-gray-200 p-4 hover:border-[#357AFF]"
-                  >
-                    <i className="fa-solid fa-wrench mr-3 text-[#357AFF]"></i>
-                    <div>
-                      <div className="font-medium text-gray-800">
-                        Maintenance
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Schedule maintenance
-                      </div>
-                    </div>
-                  </a>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        </main>
       </div>
     </div>
   );
