@@ -2,7 +2,7 @@
 import React from "react";
 
 function MainComponent() {
-  const { data: user, loading } = useUser();
+  const { data: user, loading } = use-User();
   const [events, setEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showScheduleForm, setShowScheduleForm] = useState(false);

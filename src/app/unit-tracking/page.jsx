@@ -2,7 +2,7 @@
 import React from "react";
 
 function MainComponent() {
-  const { data: user, loading } = useUser();
+  const { data: user, loading } = use-User();
   const [units, setUnits] = useState([]);
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [trackingHistory, setTrackingHistory] = useState([]);

@@ -2,7 +2,7 @@
 import React from "react";
 
 function MainComponent() {
-  const { data: user, loading } = useUser();
+  const { data: user, loading } = use-User();
   const [dateRange, setDateRange] = useState("month");
   const [reportData, setReportData] = useState(null);
   const [error, setError] = useState(null);

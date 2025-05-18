@@ -2,7 +2,7 @@
 import React from "react";
 
 function MainComponent() {
-  const { data: user, loading } = useUser();
+  const { data: user, loading } = use-User();
   const [selectedTemplate, setSelectedTemplate] = useState("daily");
   const [error, setError] = useState(null);
   const [checklistItems, setChecklistItems] = useState({});

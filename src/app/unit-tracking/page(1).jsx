@@ -2,7 +2,7 @@
 import React from "react";
 
 function MainComponent() {
-  const { data: user, loading } = useUser();
+  const { data: user, loading } = use-User();
   const [units, setUnits] = useState([
     { id: "UNIT001", name: "Forklift A" },
     { id: "UNIT002", name: "Crane B" },
