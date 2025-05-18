@@ -1,0 +1,3 @@
+[submodule "SATS"]
+  path = SATS
+  url = https://github.com/RME-epro/SATS.git
